@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Push-Up Challenge</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --card: #111a2d;
+      --card-2: #18253d;
+      --text: #e6edf8;
+      --muted: #9eb0cf;
+      --accent: #58a6ff;
+      --ok: #2ea043;
+      --warn: #d29922;
+      --bad: #f85149;
+      --border: #2a3b5f;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Segoe UI, Arial, sans-serif;
+      background: linear-gradient(180deg, #0b1220 0%, #0f1628 100%);
+      color: var(--text);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 16px 40px;
+    }
+
+    h1, h2, h3 { margin: 0; }
+    .subtitle { color: var(--muted); margin-top: 8px; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .stats {
+      grid-template-columns: repeat(4, minmax(180px, 1fr));
+      margin-top: 16px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      margin-top: 8px;
+    }
+
+    .label { color: var(--muted); font-size: 13px; }
+
+    .top-layout {
+      grid-template-columns: 2fr 1fr;
+      margin-top: 16px;
+      align-items: start;
+    }
+
+    .calendar-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid transparent;
+    }
+
+    .badge-done { background: rgba(46,160,67,.2); border-color: rgba(46,160,67,.4); color: #b9f5c7; }
+    .badge-missed { background: rgba(248,81,73,.2); border-color: rgba(248,81,73,.4); color: #ffd0cc; }
+    .badge-upcoming { background: rgba(88,166,255,.14); border-color: rgba(88,166,255,.3); color: #c7e2ff; }
+    .badge-progress { background: rgba(210,153,34,.2); border-color: rgba(210,153,34,.45); color: #ffe2a8; }
+    .badge-catchup { background: rgba(210,153,34,.2); border-color: rgba(210,153,34,.45); color: #ffe2a8; }
+
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .dow {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      padding-bottom: 6px;
+    }
+
+    .day {
+      min-height: 120px;
+      border: 1px solid var(--border);
+      background: var(--card-2);
+      border-radius: 10px;
+      padding: 8px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .day.today { outline: 2px solid var(--accent); }
+    .day.selected { border-color: var(--accent); }
+
+    .day-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    .day-units { font-size: 18px; font-weight: 700; }
+    .day-small { font-size: 12px; color: var(--muted); }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    input, select, button {
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #0f1930;
+      color: var(--text);
+      padding: 10px;
+      font-size: 14px;
+    }
+
+    button {
+      background: #1f6feb;
+      border-color: #2f81f7;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button:hover { filter: brightness(1.06); }
+    button:disabled { opacity: 0.65; cursor: not-allowed; filter: none; }
+
+    .muted { color: var(--muted); font-size: 13px; }
+    .mt10 { margin-top: 10px; }
+    .mt16 { margin-top: 16px; }
+    .hidden { display: none; }
+
+    .list {
+      display: grid;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .item {
+      border: 1px solid var(--border);
+      background: var(--card-2);
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 13px;
+    }
+
+    .warning {
+      border: 1px solid rgba(210,153,34,.45);
+      background: rgba(210,153,34,.12);
+      color: #ffe2a8;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    .participants-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 13px;
+    }
+
+    .participants-table th,
+    .participants-table td {
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      padding: 8px 6px;
+    }
+
+    .participants-table th {
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .quote-wrap {
+      display: grid;
+      grid-template-columns: 84px 1fr;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .quote-avatar {
+      width: 84px;
+      height: 84px;
+      object-fit: cover;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #0f1930;
+    }
+
+    @media (max-width: 900px) {
+      .stats { grid-template-columns: 1fr 1fr; }
+      .top-layout { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .day { min-height: 100px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Push-Up Challenge</h1>
+    <p class="subtitle">100 per day until month end. You can do push-ups or an equivalent workout (abs, squats, 100-second plank).</p>
+
+    <div id="registrationCard" class="card mt16">
+      <h2>Register</h2>
+      <p class="muted mt10">Register once to join the shared monthly challenge board.</p>
+      <div class="form-row">
+        <input id="firstName" placeholder="First name" />
+        <input id="lastName" placeholder="Last name" />
+      </div>
+      <div class="form-row">
+        <input id="city" placeholder="City represented" />
+        <button id="registerBtn">Start Challenge</button>
+      </div>
+    </div>
+
+    <div id="dashboard" class="hidden">
+      <div class="grid stats">
+        <div class="card">
+          <div class="label">Days completed</div>
+          <div id="daysCompleted" class="stat-value">0</div>
+        </div>
+        <div class="card">
+          <div class="label">Yellow cards (malus)</div>
+          <div id="yellowCards" class="stat-value">0</div>
+        </div>
+        <div class="card">
+          <div class="label">Bank available today</div>
+          <div id="bankToday" class="stat-value">0</div>
+        </div>
+        <div class="card">
+          <div class="label">Outstanding deficit</div>
+          <div id="deficitToday" class="stat-value">0</div>
+        </div>
+      </div>
+
+      <div class="grid top-layout">
+        <div class="card">
+          <div class="calendar-head">
+            <h2 id="monthTitle"></h2>
+            <span class="badge badge-upcoming">Target: 100/day</span>
+          </div>
+          <div id="calendarRoot"></div>
+        </div>
+
+        <div class="grid">
+          <div class="card">
+            <h3>Daily log</h3>
+            <div class="muted mt10">Selected day: <span id="selectedDayLabel"></span></div>
+            <div class="form-row">
+              <select id="workoutType">
+                <option value="regular-pushup">Regular push-ups</option>
+                <option value="diamond-pushup">Diamond push-ups</option>
+                <option value="feet-on-chair">Feet on chair push-ups</option>
+                <option value="abs">Abs</option>
+                <option value="squats">Squats</option>
+                <option value="plank-seconds">Plank (seconds)</option>
+              </select>
+              <input id="unitsDone" type="number" min="0" step="1" placeholder="Units done (e.g. 100)" />
+            </div>
+            <button id="saveLogBtn" class="mt10">Save day</button>
+            <div id="selectedDayInfo" class="warning hidden"></div>
+          </div>
+
+          <div class="card">
+            <h3>Suggested workout</h3>
+            <div id="suggestionToday" class="item mt10"></div>
+            <h3 class="mt16">Coming days</h3>
+            <div id="comingDays" class="list"></div>
+          </div>
+
+          <div class="card">
+            <h3>Shonen Spirit motivation</h3>
+            <div id="motivationQuote" class="item mt10"></div>
+          </div>
+
+          <div class="card">
+            <h3>Participants</h3>
+            <p class="muted mt10">Shared list for all participants.</p>
+            <div id="participantsList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const STORAGE_KEY = "pushup-challenge-v2";
+    const TARGET = 100;
+    const YELLOW_CARD_START_DATE = "2026-11-02";
+    const SUPABASE_URL = "YOUR_SUPABASE_URL";
+    const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+
+    const suggestions = [
+      "Regular push-ups - 10 x 10",
+      "Diamond push-ups - 5 x 20",
+      "Feet-on-chair push-ups - 8 x 12 + 4 bonus",
+      "Wide push-ups - 4 x 25",
+      "Tempo push-ups (3 sec down) - 10 x 10",
+      "Abs circuit - 4 rounds x 25 reps",
+      "Squats - 5 x 20",
+      "Plank - 5 x 20 seconds",
+      "Mixed day: 40 push-ups + 30 abs + 30 squats",
+      "Pyramid push-ups: 10-15-20-25-20-10",
+      "Clap push-ups (if safe) + regular finish",
+      "Close-grip push-ups - 10 x 10"
+    ];
+
+    const shonenQuotes = [
+      {
+        character: "Monkey D. Luffy",
+        image: "https://static.wikia.nocookie.net/onepiece/images/5/5d/Monkey_D._Luffy_Anime_Infobox.png",
+        quote: "Small steps every day turn into a big adventure. Keep going, your future self is cheering for you."
+      },
+      {
+        character: "Naruto Uzumaki",
+        image: "https://static.wikia.nocookie.net/naruto/images/8/84/Naruto_Uzumaki.png",
+        quote: "Even if today is tough, you can still stand up and try again tomorrow. That is real strength."
+      },
+      {
+        character: "Tanjiro Kamado",
+        image: "https://static.wikia.nocookie.net/kimetsu-no-yaiba/images/a/a2/Tanjiro_Kamado_Full_Body_%28Anime%29.png",
+        quote: "Breathe, focus, and move with kindness toward yourself. One honest effort at a time is enough."
+      },
+      {
+        character: "Izuku Midoriya",
+        image: "https://static.wikia.nocookie.net/bokunoheroacademia/images/1/10/Izuku_Midoriya_Full_Body_Uniform.png",
+        quote: "Progress is built from daily practice. Your consistency is already your superpower."
+      }
+    ];
+
+    const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+
+    const state = loadState();
+    const today = new Date();
+    const todayKey = isoDate(today.getFullYear(), today.getMonth(), today.getDate());
+    const viewYear = today.getFullYear();
+    const viewMonth = today.getMonth();
+    let selectedDate = isoDate(viewYear, viewMonth, today.getDate());
+    let participantsCache = [];
+    let monthLogsCache = {};
+    const isDbConfigured = !SUPABASE_URL.includes("YOUR_") && !SUPABASE_ANON_KEY.includes("YOUR_");
+    const supabase = isDbConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+    const registrationCard = document.getElementById("registrationCard");
+    const dashboard = document.getElementById("dashboard");
+    const registerBtn = document.getElementById("registerBtn");
+    const saveLogBtn = document.getElementById("saveLogBtn");
+
+    function loadState() {
+      const fallback = { profile: null, participantId: null };
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return fallback;
+      try {
+        const parsed = JSON.parse(raw);
+        return {
+          profile: parsed.profile || null,
+          participantId: parsed.participantId || null
+        };
+      } catch {
+        localStorage.removeItem(STORAGE_KEY);
+        return fallback;
+      }
+    }
+
+    function persist() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function pad(n) {
+      return String(n).padStart(2, "0");
+    }
+
+    function isoDate(y, mZero, d) {
+      return `${y}-${pad(mZero + 1)}-${pad(d)}`;
+    }
+
+    function monthKey(y, mZero) {
+      return `${y}-${pad(mZero + 1)}`;
+    }
+
+    function getDaysInMonth(y, mZero) {
+      return new Date(y, mZero + 1, 0).getDate();
+    }
+
+    function dayOfWeekIndex(y, mZero, d) {
+      return new Date(y, mZero, d).getDay();
+    }
+
+    function isFuture(dateKey) {
+      return dateKey > todayKey;
+    }
+
+    function isPast(dateKey) {
+      return dateKey < todayKey;
+    }
+
+    function isToday(dateKey) {
+      return dateKey === todayKey;
+    }
+
+    function getSuggestionFor(dateKey) {
+      const d = new Date(dateKey + "T00:00:00");
+      const idx = (d.getDate() + d.getMonth() * 3 + d.getFullYear()) % suggestions.length;
+      return suggestions[idx];
+    }
+
+    function isYellowCardDate(dateKey) {
+      return dateKey >= YELLOW_CARD_START_DATE;
+    }
+
+    function toMonthLogs(rows) {
+      const map = {};
+      for (const row of rows) {
+        map[row.challenge_date] = { units: row.units, workout: row.workout };
+      }
+      return map;
+    }
+
+    async function loadParticipantsFromDb() {
+      if (!supabase) return [];
+      const { data, error } = await supabase
+        .from("participants")
+        .select("id,first_name,last_name,city,created_at")
+        .order("created_at", { ascending: true });
+      if (error) throw new Error(`Unable to load participants: ${error.message}`);
+      return data || [];
+    }
+
+    async function loadMonthLogsFromDb(y, mZero) {
+      if (!supabase || !state.participantId) return {};
+      const start = isoDate(y, mZero, 1);
+      const end = isoDate(y, mZero, getDaysInMonth(y, mZero));
+      const { data, error } = await supabase
+        .from("daily_logs")
+        .select("challenge_date,workout,units")
+        .eq("participant_id", state.participantId)
+        .gte("challenge_date", start)
+        .lte("challenge_date", end);
+      if (error) throw new Error(`Unable to load logs: ${error.message}`);
+      return toMonthLogs(data || []);
+    }
+
+    async function register() {
+      const first = document.getElementById("firstName").value.trim();
+      const last = document.getElementById("lastName").value.trim();
+      const city = document.getElementById("city").value.trim();
+
+      if (!first || !last || !city) {
+        alert("Please fill first name, last name, and city.");
+        return;
+      }
+      if (!supabase) {
+        alert("Database is not configured yet. Set SUPABASE_URL and SUPABASE_ANON_KEY in this file before sharing.");
+        return;
+      }
+
+      let participantId = null;
+      const existing = await supabase
+        .from("participants")
+        .select("id")
+        .eq("first_name", first)
+        .eq("last_name", last)
+        .eq("city", city)
+        .limit(1)
+        .maybeSingle();
+      if (existing.error) {
+        throw new Error(`Unable to check participant: ${existing.error.message}`);
+      }
+      if (existing.data && existing.data.id) {
+        participantId = existing.data.id;
+      } else {
+        const created = await supabase
+          .from("participants")
+          .insert({ first_name: first, last_name: last, city: city })
+          .select("id")
+          .single();
+        if (created.error) {
+          throw new Error(`Unable to register participant: ${created.error.message}`);
+        }
+        participantId = created.data.id;
+      }
+
+      state.profile = { first, last, city };
+      state.participantId = participantId;
+      persist();
+      await refreshSharedData();
+      render();
+    }
+
+    async function saveSelectedDay() {
+      if (isPast(selectedDate)) {
+        alert("This day is locked because it has passed.");
+        return;
+      }
+      if (!supabase || !state.participantId) {
+        alert("Please register first.");
+        return;
+      }
+      const units = Math.max(0, Number(document.getElementById("unitsDone").value) || 0);
+      const workout = document.getElementById("workoutType").value;
+      const { error } = await supabase
+        .from("daily_logs")
+        .upsert(
+          {
+            participant_id: state.participantId,
+            challenge_date: selectedDate,
+            workout,
+            units
+          },
+          { onConflict: "participant_id,challenge_date" }
+        );
+      if (error) {
+        throw new Error(`Unable to save day: ${error.message}`);
+      }
+      monthLogsCache[selectedDate] = { units, workout };
+      render();
+    }
+
+    function workoutLabel(type) {
+      const map = {
+        "regular-pushup": "Regular push-ups",
+        "diamond-pushup": "Diamond push-ups",
+        "feet-on-chair": "Feet-on-chair push-ups",
+        "abs": "Abs",
+        "squats": "Squats",
+        "plank-seconds": "Plank (seconds)"
+      };
+      return map[type] || "Workout";
+    }
+
+    function statusBadgeHtml(rec) {
+      if (rec.status === "done") return `<span class="badge badge-done">Done</span>`;
+      if (rec.status === "missed") return `<span class="badge badge-missed">Missed</span>`;
+      if (rec.status === "in-progress") return `<span class="badge badge-progress">In progress</span>`;
+      return `<span class="badge badge-upcoming">Coming</span>`;
+    }
+
+    function computeMonth(y, mZero) {
+      const logs = monthLogsCache;
+      const days = getDaysInMonth(y, mZero);
+      const records = {};
+      let incomingBank = 0;
+      let incomingDebt = 0;
+      let yellowCards = 0;
+      let doneCount = 0;
+
+      for (let day = 1; day <= days; day++) {
+        const dateKey = isoDate(y, mZero, day);
+        const entry = logs[dateKey] || { units: 0, workout: "regular-pushup" };
+        const units = Math.max(0, Number(entry.units) || 0);
+        const required = TARGET + incomingDebt;
+        const effective = units + incomingBank;
+        const met = effective >= required;
+        const deficit = met ? 0 : required - effective;
+        const surplus = met ? effective - required : 0;
+        const catchupDay = incomingDebt > 0;
+        const yellowCard = isYellowCardDate(dateKey) && isPast(dateKey) && !met;
+
+        if (yellowCard) yellowCards += 1;
+        if (met) doneCount += 1;
+
+        let status = "upcoming";
+        if (isFuture(dateKey)) {
+          status = "upcoming";
+        } else if (met) {
+          status = "done";
+        } else if (isToday(dateKey)) {
+          status = "in-progress";
+        } else {
+          status = "missed";
+        }
+
+        records[dateKey] = {
+          dateKey,
+          units,
+          workout: entry.workout || "regular-pushup",
+          required,
+          incomingBank,
+          incomingDebt,
+          effective,
+          met,
+          deficit,
+          surplus,
+          catchupDay,
+          yellowCard,
+          status,
+          suggestion: getSuggestionFor(dateKey)
+        };
+
+        incomingBank = surplus;
+        incomingDebt = deficit;
+      }
+
+      return {
+        monthTitle: `${monthNames[mZero]} ${y}`,
+        records,
+        yellowCards,
+        doneCount
+      };
+    }
+
+    function renderCalendar(monthData) {
+      const root = document.getElementById("calendarRoot");
+      const days = getDaysInMonth(viewYear, viewMonth);
+      const firstDow = dayOfWeekIndex(viewYear, viewMonth, 1);
+      const dow = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+      const dowHtml = dow.map(d => `<div class="dow">${d}</div>`).join("");
+      let cells = "";
+
+      for (let i = 0; i < firstDow; i++) {
+        cells += `<div></div>`;
+      }
+
+      for (let day = 1; day <= days; day++) {
+        const key = isoDate(viewYear, viewMonth, day);
+        const rec = monthData.records[key];
+        const classes = [
+          "day",
+          key === todayKey ? "today" : "",
+          key === selectedDate ? "selected" : ""
+        ].join(" ").trim();
+
+        const catchupNote = rec.catchupDay ? `<span class="badge badge-catchup">Catch-up day</span>` : "";
+        const yellowNote = rec.yellowCard ? `<span class="badge badge-catchup">Yellow card</span>` : "";
+        cells += `
+          <div class="${classes}" data-date="${key}">
+            <div class="day-header">
+              <strong>${day}</strong>
+              ${statusBadgeHtml(rec)}
+            </div>
+            <div class="day-units">${rec.units}</div>
+            <div class="day-small">${workoutLabel(rec.workout)}</div>
+            <div class="day-small">Need: ${rec.required} | Bank in: ${rec.incomingBank}</div>
+            ${catchupNote}
+            ${yellowNote}
+          </div>
+        `;
+      }
+
+      root.innerHTML = `<div class="calendar">${dowHtml}${cells}</div>`;
+      root.querySelectorAll(".day").forEach(el => {
+        el.addEventListener("click", () => {
+          selectedDate = el.dataset.date;
+          render();
+        });
+      });
+    }
+
+    function renderSelectedPanel(monthData) {
+      const rec = monthData.records[selectedDate];
+      const selectedLabel = document.getElementById("selectedDayLabel");
+      const workout = document.getElementById("workoutType");
+      const units = document.getElementById("unitsDone");
+      const info = document.getElementById("selectedDayInfo");
+
+      selectedLabel.textContent = selectedDate;
+      workout.value = rec.workout;
+      units.value = rec.units;
+      const editable = !isPast(selectedDate);
+      workout.disabled = !editable;
+      units.disabled = !editable;
+      saveLogBtn.disabled = !editable;
+
+      const msg = [];
+      msg.push(`Required: ${rec.required}`);
+      msg.push(`Bank from yesterday: ${rec.incomingBank}`);
+      msg.push(`Effective today: ${rec.effective}`);
+      msg.push(`Deficit after this day: ${rec.deficit}`);
+      if (rec.catchupDay) {
+        msg.push(`Catch-up day: previous deficit rolls into today's target.`);
+      }
+      if (rec.yellowCard) {
+        msg.push(`Yellow card: challenge was not completed on this day.`);
+      }
+      if (!editable) {
+        msg.push(`Locked: this day has passed and cannot be edited.`);
+      }
+
+      info.textContent = msg.join(" | ");
+      info.classList.remove("hidden");
+
+      const suggestion = document.getElementById("suggestionToday");
+      suggestion.textContent = `${selectedDate}: ${rec.suggestion}`;
+    }
+
+    function renderComingDays(monthData) {
+      const list = document.getElementById("comingDays");
+      const dayNum = Number(todayKey.split("-")[2]);
+      const maxDay = getDaysInMonth(viewYear, viewMonth);
+      const rows = [];
+
+      for (let d = dayNum + 1; d <= Math.min(dayNum + 7, maxDay); d++) {
+        const key = isoDate(viewYear, viewMonth, d);
+        const rec = monthData.records[key];
+        rows.push(`<div class="item"><strong>${key}</strong><br>${rec.suggestion}</div>`);
+      }
+
+      list.innerHTML = rows.length ? rows.join("") : `<div class="item">No coming days left in this month.</div>`;
+    }
+
+    function renderMotivationQuote() {
+      const quoteRoot = document.getElementById("motivationQuote");
+      const d = new Date(selectedDate + "T00:00:00");
+      const idx = (d.getDate() + d.getMonth() + d.getFullYear()) % shonenQuotes.length;
+      const entry = shonenQuotes[idx];
+      quoteRoot.innerHTML = `
+        <div class="quote-wrap">
+          <img class="quote-avatar" src="${entry.image}" alt="${entry.character}" loading="lazy" />
+          <div><strong>${entry.character}</strong><br>${entry.quote}</div>
+        </div>
+      `;
+    }
+
+    function renderParticipants() {
+      const root = document.getElementById("participantsList");
+      if (!participantsCache.length) {
+        root.innerHTML = `<div class="item">No participant registered yet.</div>`;
+        return;
+      }
+
+      const rows = participantsCache
+        .slice()
+        .sort((a, b) => (a.last_name + a.first_name).localeCompare(b.last_name + b.first_name))
+        .map((p, idx) => {
+          return `<tr><td>${idx + 1}</td><td>${p.first_name} ${p.last_name}</td><td>${p.city}</td></tr>`;
+        })
+        .join("");
+
+      root.innerHTML = `
+        <table class="participants-table">
+          <thead>
+            <tr><th>#</th><th>Name</th><th>City</th></tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    }
+
+    function renderStats(monthData) {
+      const todayRec = monthData.records[todayKey] || { incomingBank: 0, incomingDebt: 0 };
+      document.getElementById("daysCompleted").textContent = monthData.doneCount;
+      document.getElementById("yellowCards").textContent = monthData.yellowCards;
+      document.getElementById("bankToday").textContent = todayRec.incomingBank;
+      document.getElementById("deficitToday").textContent = todayRec.incomingDebt;
+      document.getElementById("monthTitle").textContent = monthData.monthTitle;
+    }
+
+    function ensureSelectedDateInMonth() {
+      const [y, m] = selectedDate.split("-").map(Number);
+      if (y !== viewYear || m !== viewMonth + 1) {
+        selectedDate = todayKey;
+      }
+    }
+
+    async function refreshSharedData() {
+      if (!supabase || !state.participantId) return;
+      participantsCache = await loadParticipantsFromDb();
+      monthLogsCache = await loadMonthLogsFromDb(viewYear, viewMonth);
+    }
+
+    function render() {
+      if (!state.profile || !state.participantId) {
+        registrationCard.classList.remove("hidden");
+        dashboard.classList.add("hidden");
+        return;
+      }
+
+      registrationCard.classList.add("hidden");
+      dashboard.classList.remove("hidden");
+      ensureSelectedDateInMonth();
+
+      const monthData = computeMonth(viewYear, viewMonth);
+      if (!monthData.records[selectedDate]) {
+        selectedDate = todayKey;
+      }
+
+      renderStats(monthData);
+      renderCalendar(monthData);
+      renderSelectedPanel(monthData);
+      renderComingDays(monthData);
+      renderMotivationQuote();
+      renderParticipants();
+    }
+
+    registerBtn.addEventListener("click", async () => {
+      try {
+        await register();
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+
+    saveLogBtn.addEventListener("click", async () => {
+      try {
+        await saveSelectedDay();
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+
+    (async () => {
+      try {
+        if (!isDbConfigured) {
+          alert("Set SUPABASE_URL and SUPABASE_ANON_KEY in pushup-challenge.html, then publish.");
+          return;
+        }
+        if (state.participantId) {
+          await refreshSharedData();
+        }
+        render();
+      } catch (error) {
+        alert(error.message);
+      }
+    })();
+  </script>
+</body>
+</html>
