@@ -455,7 +455,7 @@
 
     async function loadParticipantsFromDb() {
       if (!supabaseClient) return [];
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("participants")
         .select("id,first_name,last_name,city,created_at")
         .order("created_at", { ascending: true });
@@ -467,7 +467,7 @@
       if (!supabaseClient || !state.participantId) return {};
       const start = isoDate(y, mZero, 1);
       const end = isoDate(y, mZero, getDaysInMonth(y, mZero));
-      const { data, error } = await supabase
+      const { data, error } = await !supabaseClient
         .from("daily_logs")
         .select("challenge_date,workout,units")
         .eq("participant_id", state.participantId)
@@ -492,7 +492,7 @@
       }
 
       let participantId = null;
-      const existing = await supabase
+      const existing = await !supabaseClient
         .from("participants")
         .select("id")
         .eq("first_name", first)
@@ -506,7 +506,7 @@
       if (existing.data && existing.data.id) {
         participantId = existing.data.id;
       } else {
-        const created = await supabase
+        const created = await !supabaseClient
           .from("participants")
           .insert({ first_name: first, last_name: last, city: city })
           .select("id")
@@ -535,7 +535,7 @@
       }
       const units = Math.max(0, Number(document.getElementById("unitsDone").value) || 0);
       const workout = document.getElementById("workoutType").value;
-      const { error } = await supabase
+      const { error } = await !supabaseClient
         .from("daily_logs")
         .upsert(
           {
