@@ -317,7 +317,7 @@
   <script>
     const STORAGE_KEY = "pushup-challenge-v2";
     const TARGET = 100;
-    const YELLOW_CARD_START_DATE = "2026-11-02";
+    const YELLOW_CARD_START_DATE = "2026-11-03";
     const SUPABASE_URL = "https://bmsukckotaaqlmbopwvq.supabase.co";
     // const SUPABASE_URL = "YOUR_SUPABASE_URL";
     const SUPABASE_ANON_KEY = "sb_publishable_1UpF8qhzl29dd8WtZ-xKAw_GGFZNtUm";
@@ -374,7 +374,7 @@
     let selectedDate = isoDate(viewYear, viewMonth, today.getDate());
     let participantsCache = [];
     let monthLogsCache = {};
-    const isDbConfigured = !supabaseClient_URL.includes("YOUR_") && !supabaseClient_ANON_KEY.includes("YOUR_");
+    const isDbConfigured = !SUPABASE_URL.includes("YOUR_") && !SUPABASE_ANON_KEY.includes("YOUR_");
     // const supabase = isDbConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
     const supabaseClient = isDbConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
