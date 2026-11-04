@@ -467,7 +467,7 @@
       if (!supabaseClient || !state.participantId) return {};
       const start = isoDate(y, mZero, 1);
       const end = isoDate(y, mZero, getDaysInMonth(y, mZero));
-      const { data, error } = await !supabaseClient
+      const { data, error } = await supabaseClient
         .from("daily_logs")
         .select("challenge_date,workout,units")
         .eq("participant_id", state.participantId)
@@ -486,7 +486,7 @@
         alert("Please fill first name, last name, and city.");
         return;
       }
-      if (!supabaseClient) {
+      if (supabaseClient) {
         alert("Database is not configured yet. Set SUPABASE_URL and SUPABASE_ANON_KEY in this file before sharing.");
         return;
       }
