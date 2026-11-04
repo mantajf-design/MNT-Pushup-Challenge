@@ -454,7 +454,7 @@
     }
 
     async function loadParticipantsFromDb() {
-      if (!supabaseClient) return [];
+      if (supabaseClient) return [];
       const { data, error } = await supabaseClient
         .from("participants")
         .select("id,first_name,last_name,city,created_at")
@@ -464,7 +464,7 @@
     }
 
     async function loadMonthLogsFromDb(y, mZero) {
-      if (!supabaseClient || !state.participantId) return {};
+      if (supabaseClient || !state.participantId) return {};
       const start = isoDate(y, mZero, 1);
       const end = isoDate(y, mZero, getDaysInMonth(y, mZero));
       const { data, error } = await supabaseClient
@@ -492,7 +492,7 @@
       }
 
       let participantId = null;
-      const existing = await !supabaseClient
+      const existing = await supabaseClient
         .from("participants")
         .select("id")
         .eq("first_name", first)
@@ -506,7 +506,7 @@
       if (existing.data && existing.data.id) {
         participantId = existing.data.id;
       } else {
-        const created = await !supabaseClient
+        const created = await supabaseClient
           .from("participants")
           .insert({ first_name: first, last_name: last, city: city })
           .select("id")
@@ -529,13 +529,13 @@
         alert("This day is locked because it has passed.");
         return;
       }
-      if (!supabaseClient || !state.participantId) {
+      if (supabaseClient || !state.participantId) {
         alert("Please register first.");
         return;
       }
       const units = Math.max(0, Number(document.getElementById("unitsDone").value) || 0);
       const workout = document.getElementById("workoutType").value;
-      const { error } = await !supabaseClient
+      const { error } = await supabaseClient
         .from("daily_logs")
         .upsert(
           {
@@ -791,7 +791,7 @@
     }
 
     async function refreshSharedData() {
-      if (!supabaseClient || !state.participantId) return;
+      if (supabaseClient || !state.participantId) return;
       participantsCache = await loadParticipantsFromDb();
       monthLogsCache = await loadMonthLogsFromDb(viewYear, viewMonth);
     }
